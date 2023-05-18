@@ -15,6 +15,8 @@ class Snake:
 
         self.move_timer = 0
 
+        self.keys_released = True # Ensures that the player cannot hold onto a key
+
     def draw(self, surface, width, height):
 
         for i in range(len(self.parts)):
@@ -50,18 +52,29 @@ class Snake:
                 self.parts[0][1] -= y
     
     def change_direction(self):
-
         
         # Note: Extra conditions is so that the snake cannot go into itself (cannot go in the opposite of their current direction)
 
-        if pygame_key_get_pressed()[pygame_K_a] == True and self.current_direction != "R":
-            self.current_direction = "L"
+        a_pressed = pygame_key_get_pressed()[pygame_K_a]
+        d_pressed = pygame_key_get_pressed()[pygame_K_d]
+        w_pressed = pygame_key_get_pressed()[pygame_K_w]
+        s_pressed = pygame_key_get_pressed()[pygame_K_s]
 
-        elif pygame_key_get_pressed()[pygame_K_d] == True and self.current_direction != "L":
-            self.current_direction = "R"
+        if a_pressed == True and self.current_direction != "R" and self.keys_released:
+                self.current_direction = "L"
+                self.keys_released = False
 
-        elif pygame_key_get_pressed()[pygame_K_w] == True and self.current_direction != "D":
-            self.current_direction = "U"
+        elif d_pressed == True and self.current_direction != "L" and self.keys_released:
+                self.current_direction = "R"
+                self.keys_released = False
 
-        elif pygame_key_get_pressed()[pygame_K_s] == True and self.current_direction != "U":
-            self.current_direction = "D"
+        elif w_pressed == True and self.current_direction != "D" and self.keys_released:
+                self.current_direction = "U"
+                self.keys_released = False
+
+        elif s_pressed == True and self.current_direction != "U" and self.keys_released:
+                self.current_direction = "D"
+                self.keys_released = False
+
+        elif a_pressed == False and d_pressed == False and w_pressed == False and s_pressed == False:
+            self.keys_released = True

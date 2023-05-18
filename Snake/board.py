@@ -2,11 +2,11 @@
 
 from pygame.draw import line as pygame_draw_line
 from pygame.display import get_surface as pygame_display_get_surface
-# from pygame.mouse import get_pos as pygame_mouse_get_pos
-# from pygame.mouse import get_pressed as pygame_mouse_get_pressed
-from pygame import Rect as pygame_Rect
+
 from pygame.font import SysFont as pygame_font_SysFont
 from pygame.time import get_ticks as pygame_time_get_ticks
+from pygame.key import get_pressed as pygame_key_get_pressed
+from pygame import K_SPACE as pygame_K_SPACE
 
 from snake import Snake
 
@@ -26,6 +26,10 @@ class Board:
                             x = ((self.num_cells / 2) - 1) * self.cell_dimensions[0], 
                             y = ((self.num_cells / 2) - 1) * self.cell_dimensions[1]
                         )
+        
+        # Snake does not move until the player starts moving
+        self.game_started = False
+
 
     def draw_grid(self):
         
@@ -68,7 +72,12 @@ class Board:
         
         self.snake.change_direction()
 
-        current_time = pygame_time_get_ticks()
-        if current_time - self.snake.move_timer > 200:
-            self.snake.move(x = self.cell_dimensions[0], y = self.cell_dimensions[1])
-            self.snake.move_timer = current_time
+        if self.game_started:
+            current_time = pygame_time_get_ticks()
+            if current_time - self.snake.move_timer > 200:
+                self.snake.move(x = self.cell_dimensions[0], y = self.cell_dimensions[1])
+                self.snake.move_timer = current_time
+
+        else:
+            if pygame_key_get_pressed()[pygame_K_SPACE]:
+                self.game_started = True
