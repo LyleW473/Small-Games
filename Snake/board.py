@@ -1,4 +1,5 @@
 from pygame.draw import line as pygame_draw_line
+from pygame.draw import rect as pygame_draw_rect
 from pygame.display import get_surface as pygame_display_get_surface
 
 from pygame.font import SysFont as pygame_font_SysFont
@@ -7,6 +8,7 @@ from pygame.key import get_pressed as pygame_key_get_pressed
 from pygame import K_SPACE as pygame_K_SPACE
 
 from snake import Snake
+from random import randrange as random_randrange
 
 class Board:
 
@@ -26,6 +28,12 @@ class Board:
                             x = ((self.num_cells / 2) - 1) * self.cell_dimensions[0], 
                             y = ((self.num_cells / 2) - 1) * self.cell_dimensions[1]
                         )
+        
+        # Boolean that determines whether the snake will extend on the next self.move() call
+        self.extend_snake = None
+        
+        # Generate food
+        self.food = self.generate_food()
         
         # Snake does not move until the player starts moving
         self.game_started = False
@@ -66,20 +74,37 @@ class Board:
                         y = ((self.num_cells / 2) - 1) * self.cell_dimensions[1]
                     )
     
+    def generate_food(self):
+        x_cell_index = random_randrange(0, self.num_cells)
+        y_cell_index = random_randrange(0, self.num_cells)
+        
+        return (x_cell_index * self.cell_dimensions[0], y_cell_index * self.cell_dimensions[1])
+
     def run(self):
         
         # Grid
         self.draw_grid()
-
-        # Snake
-        self.snake.draw(
-                        surface = self.surface, 
-                        width = self.cell_dimensions[0], 
-                        height = self.cell_dimensions[1]
-                        )
         
         if self.game_started:
+
+            # Draw the food
+            pygame_draw_rect(
+                            surface = self.surface, 
+                            color = "GREEN",
+                            rect = (self.food[0], 
+                                    self.food[1], 
+                                    self.cell_dimensions[0], 
+                                    self.cell_dimensions[1]
+                                    ),
+                            width = 0
+                            )
             
+            # Check if the snake collided with food
+            if self.snake.check_food_collision(food_coord = self.food) == True:
+                self.food = self.generate_food()
+                self.extend_snake = True # Extend the snake the next time the snake moves
+
+
             # Check if the player wants to change the direction the snake is moving in
             self.snake.change_direction()
 
@@ -89,10 +114,20 @@ class Board:
 
             # Check if the player wants to move the snake
             current_time = pygame_time_get_ticks()
-            if current_time - self.snake.move_timer > 200:
-                self.snake.move(x = self.cell_dimensions[0], y = self.cell_dimensions[1])
-                self.snake.move_timer = current_time
+            if current_time - self.snake.move_timer > 150:
+                
+                # Extend the snake
+                if self.extend_snake == True:
+                    self.snake.extend(cell_size = self.cell_dimensions)
+                    self.extend_snake = False
 
+                # Just move the snake
+                else:
+                    self.snake.move(x = self.cell_dimensions[0], y = self.cell_dimensions[1])
+
+                # Reset next iteration timer
+                self.snake.move_timer = current_time
+        
         else:
             # Draw the start text
             self.draw_text(
@@ -106,3 +141,10 @@ class Board:
             # Check if the player started the game
             if pygame_key_get_pressed()[pygame_K_SPACE]:
                 self.game_started = True
+
+        # Snake
+        self.snake.draw(
+                        surface = self.surface, 
+                        width = self.cell_dimensions[0], 
+                        height = self.cell_dimensions[1]
+                        )

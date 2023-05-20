@@ -5,13 +5,15 @@ from pygame import K_d as pygame_K_d
 from pygame import K_w as pygame_K_w
 from pygame import K_s as pygame_K_s
 
+from random import choice as random_choice
+
 class Snake:
     
     def __init__(self, x, y):
-        
-        self.parts = [[x, y], [x + (900 / 20), y], [x + ((900 / 20) * 2), y], [x + ((900 / 20) * 3), y], [x + ((900 / 20) * 4), y], [x + ((900 / 20) * 5), y]]
 
-        self.current_direction =  "L"
+        self.current_direction =  random_choice(("L", "R", "U", "D"))
+
+        self.parts = [[x, y]]
 
         self.move_timer = 0
 
@@ -82,7 +84,7 @@ class Snake:
     def check_collision(self, screen_width, screen_height):
         
         # Left, screen_width, Top, screen_height
-        if self.parts[0][0] < 0 or self.parts[0][0] > screen_width or self.parts[0][1] < 0 or self.parts[0][1] > screen_height:
+        if self.parts[0][0] < 0 or self.parts[0][0] >= screen_width or self.parts[0][1] < 0 or self.parts[0][1] >= screen_height:
             return True
         
         # Collision with other parts
@@ -91,3 +93,12 @@ class Snake:
                 return True
 
         return False
+    
+    def check_food_collision(self, food_coord):
+        return True if self.parts[0][0] == food_coord[0] and self.parts[0][1] == food_coord[1] else False
+    
+    def extend(self, cell_size):
+        
+        last_segment = self.parts[-1][:]
+        self.move(x = cell_size[0], y = cell_size[1])
+        self.parts.append(last_segment)
