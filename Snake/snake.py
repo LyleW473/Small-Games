@@ -14,6 +14,8 @@ class Snake:
         self.current_direction =  random_choice(("L", "R", "U", "D"))
 
         self.parts = [[x, y]]
+        
+        self.occupied_cells = set((x, y))
 
         self.move_timer = 0
 
@@ -52,6 +54,9 @@ class Snake:
 
             case "U":
                 self.parts[0][1] -= y
+
+        # Used so that food can be generated in cells that the snake is not "occupying"
+        self.occupied_cells = set((coord[0], coord[1]) for coord in self.parts)
     
     def change_direction(self):
         

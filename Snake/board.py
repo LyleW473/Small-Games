@@ -8,7 +8,7 @@ from pygame.key import get_pressed as pygame_key_get_pressed
 from pygame import K_SPACE as pygame_K_SPACE
 
 from snake import Snake
-from random import randrange as random_randrange
+from random import choice as random_choice
 
 from os.path import exists as os_path_exists
 
@@ -101,10 +101,11 @@ class Board:
         self.hs_text_size = self.text_font.size(f"High score: {self.h_score}")
     
     def generate_food(self):
-        x_cell_index = random_randrange(0, self.num_cells)
-        y_cell_index = random_randrange(0, self.num_cells)
-        
-        return (x_cell_index * self.cell_dimensions[0], y_cell_index * self.cell_dimensions[1])
+
+        # Used so that food can be generated in cells that the snake is not "occupying"
+        self.food_locations = [(i, j) for j in range(self.num_cells) for i in range(self.num_cells) if ((i * self.cell_dimensions[0], j * self.cell_dimensions[1]) not in self.snake.occupied_cells)]
+        choice = random_choice(self.food_locations)
+        return (choice[0] * self.cell_dimensions[0], choice[1] * self.cell_dimensions[1])
 
     def run(self):
         
