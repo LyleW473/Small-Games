@@ -10,6 +10,8 @@ from pygame import K_SPACE as pygame_K_SPACE
 from snake import Snake
 from random import randrange as random_randrange
 
+from os.path import exists as os_path_exists
+
 class Board:
 
     def __init__(self, board_dimensions, ):
@@ -18,9 +20,6 @@ class Board:
         self.dimensions = board_dimensions
         self.num_cells = 20
         self.cell_dimensions = (self.dimensions[0] / self.num_cells, self.dimensions[1] / self.num_cells)
-
-        self.text_font = pygame_font_SysFont("Bahnschrift", 50)
-        self.start_text_size = self.text_font.size("Press Spacebar to start!")
 
         self.reset_timer = 0
 
@@ -37,6 +36,22 @@ class Board:
         
         # Snake does not move until the player starts moving
         self.game_started = False
+
+        # High score
+        if os_path_exists("high_score.txt"):
+            with open("high_score.txt", "r") as hs_file:
+                self.h_score = int(hs_file.read())
+        else:
+            self.h_score = 0
+        
+        # Current score
+        self.c_score = 0
+
+        # Text
+        self.text_font = pygame_font_SysFont("Bahnschrift", 50)
+        self.start_text_size = self.text_font.size("Press Spacebar to start!")
+        self.hs_text_size = self.text_font.size(f"High score: {self.h_score}")
+        self.cs_text_size = self.text_font.size(f"Score: {self.c_score}")
 
     def draw_text(self, text, text_colour, font, x, y):
         
@@ -73,6 +88,17 @@ class Board:
                         x = ((self.num_cells / 2) - 1) * self.cell_dimensions[0], 
                         y = ((self.num_cells / 2) - 1) * self.cell_dimensions[1]
                     )
+        # Score 
+        if self.c_score > self.h_score:
+            self.h_score = self.c_score
+            with open("high_score.txt", "w") as hs_file:
+                hs_file.write(str(self.h_score))
+        
+        self.c_score = 0
+
+        # Text
+        self.cs_text_size = self.text_font.size(f"Score: {self.c_score}")
+        self.hs_text_size = self.text_font.size(f"High score: {self.h_score}")
     
     def generate_food(self):
         x_cell_index = random_randrange(0, self.num_cells)
@@ -82,7 +108,7 @@ class Board:
 
     def run(self):
         
-        # Grid
+        # Draw grid
         self.draw_grid()
         
         if self.game_started:
@@ -104,6 +130,9 @@ class Board:
                 self.food = self.generate_food()
                 self.extend_snake = True # Extend the snake the next time the snake moves
 
+                # Score
+                self.c_score += 1
+                self.cs_text_size = self.text_font.size(f"Score: {self.c_score}") # Find new text size (for accurate alignment of text)
 
             # Check if the player wants to change the direction the snake is moving in
             self.snake.change_direction()
@@ -127,7 +156,23 @@ class Board:
 
                 # Reset next iteration timer
                 self.snake.move_timer = current_time
-        
+
+            # Draw snake
+            self.snake.draw(
+                        surface = self.surface, 
+                        width = self.cell_dimensions[0], 
+                        height = self.cell_dimensions[1]
+                        )
+            
+            # Draw the score text
+            self.draw_text(
+                            text = f"Score: {self.c_score}",
+                            text_colour = "BLACK",
+                            font = self.text_font,
+                            x = (self.dimensions[0]) - (self.cs_text_size[0]) - 40,
+                            y = (self.dimensions[1]) - (self.cs_text_size[1]) - 40,
+                            )
+
         else:
             # Draw the start text
             self.draw_text(
@@ -137,14 +182,16 @@ class Board:
                             x = (self.dimensions[0] // 2) - (self.start_text_size[0] // 2),
                             y = (self.dimensions[1] // 2) - (self.start_text_size[1] // 2)
                             )
-            
+
+            # Draw the high-score text
+            self.draw_text(
+                            text = f"High score: {self.h_score}",
+                            text_colour = "BLACK",
+                            font = self.text_font,
+                            x = (self.dimensions[0] // 2) - (self.hs_text_size[0] // 2),
+                            y = (self.dimensions[1] // 2) - (self.hs_text_size[1] // 2) + 80
+                            )
+
             # Check if the player started the game
             if pygame_key_get_pressed()[pygame_K_SPACE]:
                 self.game_started = True
-
-        # Snake
-        self.snake.draw(
-                        surface = self.surface, 
-                        width = self.cell_dimensions[0], 
-                        height = self.cell_dimensions[1]
-                        )
