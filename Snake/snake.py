@@ -8,10 +8,10 @@ from pygame import K_s as pygame_K_s
 class Snake:
     
     def __init__(self, x, y):
+        
+        self.parts = [[x, y], [x + (900 / 20), y], [x + ((900 / 20) * 2), y], [x + ((900 / 20) * 3), y], [x + ((900 / 20) * 4), y], [x + ((900 / 20) * 5), y]]
 
-        self.parts = [[x, y], [x + (900 / 20), y], [x + ((900 / 20) * 2), y], [x + ((900 / 20) * 3), y]]
-
-        self.current_direction = "L"
+        self.current_direction =  "L"
 
         self.move_timer = 0
 
@@ -78,3 +78,16 @@ class Snake:
 
         elif a_pressed == False and d_pressed == False and w_pressed == False and s_pressed == False:
             self.keys_released = True
+
+    def check_collision(self, screen_width, screen_height):
+        
+        # Left, screen_width, Top, screen_height
+        if self.parts[0][0] < 0 or self.parts[0][0] > screen_width or self.parts[0][1] < 0 or self.parts[0][1] > screen_height:
+            return True
+        
+        # Collision with other parts
+        for i in range(1, len(self.parts)):
+            if self.parts[0] == self.parts[i]:
+                return True
+
+        return False
